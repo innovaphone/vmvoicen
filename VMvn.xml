@@ -53,6 +53,9 @@
 						</case>
 					</switch>
 				</if>
+				<else>
+					<store-cookie root="$cn" name="personal/NumMess.txt" value="0"/>
+				</else>
                          </case>
                         </switch>
           	</if>
@@ -60,4 +63,4 @@
 	<pbx-disc /> 
      </function>  
 </voicemail>
-<!-- VM Voice Notification wiki-src/xml/VMvoiceN 1,0,0,0 (C) innovaphone AG 2010-2016 -->
+<!-- VM Voice Notification wiki-src/xml/VMvoiceN 1,0,1,0 (C) innovaphone AG 2010-2017 -->
