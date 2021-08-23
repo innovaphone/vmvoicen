@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<voicemail>
+  <!-- innovaphone Voice Mail Voce notification == innovaphone AG V10.00 KWA 2016 -->
+  <function define="Main">
+	<event type="timer" name="vbguard">
+		<pbx-disc /> 
+	</event>
+	<timer name="vbguard" sec="30" />
+	<assign out="$pin" value="" />
+	<while notcond="$pin-ok">
+		<wait sec="2"/>
+		<store-cookie name="NotMess.txt" out="$DestNR"/>
+		<if cond="$DestNR">
+			<store-cookie name="VMnumber.txt" out="$DestCF"/>
+			<pbx-prepcallinfo cgpn="$DestCF" string="Voicemail" />
+			<pbx-fwd e164="$DestNR" barge-in="true"/>
+		</if>
+	</while>
+  </function>
+</voicemail>
+<!-- VM Voice Notification wiki-src/xml/VMvoiceN 1,0,0,0 (C) innovaphone AG 2010-2016 -->
