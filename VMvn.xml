@@ -1,10 +1,11 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <voicemail>
-<!-- innovaphone Speed-Dialer == innovaphone AG KWA 2016  -->
+<!-- innovaphone Voice Notification == innovaphone AG KWA 2018  -->
    <function define="Main">
       <assign out="$prefix" value="" />
       <assign out="$sdLenght" value="3" />
       <assign out="$pin" value="" />
+      <assign out="$minutes" value="1" />
 	<event type="timer" name="vbguard">
 		<pbx-disc /> 
 	</event>
@@ -21,6 +22,23 @@
                          <case equal="Voicemail">
 				<store-get-msgcount root="$cn" out-count="$msgcount" />
 				<if cond="$msgcount">
+
+					<assign out="$Lps" value="0" />
+					<store-getstat root="$cn" name="personal/Loops.txt" out-error="$error" /> 
+					<if notcond="$error">
+				                <store-cookie root="$cn" name="personal/Loops.txt" out="$Lps"/>
+				        </if>
+					<add value="1" value2="$Lps" out="$resL"/>
+					<wait sec="1"/>
+					<switch var="$resL">
+						<case less="$minutes">
+							<store-cookie root="$cn" name="personal/Loops.txt" value="$resL"/>
+							<wait sec="1"/>	
+							<pbx-disc /> 
+						</case>
+					</switch>
+					<store-cookie root="$cn" name="personal/Loops.txt" value="0"/>
+
 					<store-cookie root="$cn" name="personal/NumMess.txt" out="$Nmess"/>
 					<switch var="$msgcount">
 						<case greater="$Nmess">
@@ -64,3 +82,5 @@
      </function>  
 </voicemail>
 <!-- VM Voice Notification wiki-src/xml/VMvoiceN 1,0,1,0 (C) innovaphone AG 2010-2017 -->
+
+<!-- VM Voice Notification wiki-src/xml/VMvoiceN 1,0,2,0 (C) innovaphone AG 2010-2018 -->
