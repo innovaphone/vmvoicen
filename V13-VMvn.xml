@@ -1,0 +1,120 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<voicemail>
+	<!-- innovaphone Voice Notification == innovaphone AG KWA 2018  -->
+	<function define="Main">
+		<assign out="$prefix" value=""/>
+		<assign out="$sdLenght" value="3"/>
+		<assign out="$pin" value=""/>
+		<assign out="$minutes" value="1"/>
+		<event type="timer" name="vbguard">
+			<pbx-disc/>
+		</event>
+		<timer name="vbguard" sec="30"/>
+		<pbx-getcallinfo out-cgpn="$cgpn" out-cdpn="$cdpn" out-leg2="$leg2"/>
+		<pbx-finduser-e164 e164="$cdpn" out-cn="$cn"/>
+		<pbx-query-obj name="$cn" type="cfu" out="$DestCF"/>
+		<!-- Added for V13 -->
+		<call name="SetUsrInfo"/>
+		<assign out="$sub" value="$usrdir"/>
+		<!-- Added for V13 -->
+		<if cond="$DestCF">
+			<pbx-query-obj name="$cn" type="cfnr" out="$DestNR"/>
+			<if cond="$DestNR">
+				<pbx-finduser-e164 e164="$DestCF" out-cn="$VMname"/>
+				<pbx-query-obj name="$VMname" type="pseudo_text" out="$pseudo"/>
+				<switch var="$pseudo">
+					<case equal="Voicemail">
+						<store-get-msgcount root="$sub" out-count="$msgcount"/> <!-- V13-change: root="$sub" -->
+						<if cond="$msgcount">
+							<assign out="$Lps" value="0"/>
+							<store-getstat root="$sub" name="personal/Loops.txt" out-error="$error"/> <!-- V13-change: root="$sub" -->
+							<if notcond="$error">
+								<store-cookie root="$sub" name="personal/Loops.txt" out="$Lps"/> <!-- V13-change: root="$sub" -->
+							</if>
+							<add value="1" value2="$Lps" out="$resL"/>
+							<wait sec="1"/>
+							<switch var="$resL">
+								<case less="$minutes">
+									<store-cookie root="$sub" name="personal/Loops.txt" value="$resL"/> <!-- V13-change: root="$sub" -->
+									<wait sec="1"/>
+									<pbx-disc/>
+								</case>
+							</switch>
+							<store-cookie root="$sub" name="personal/Loops.txt" value="0"/> <!-- V13-change: root="$sub" -->
+							<store-cookie root="$sub" name="personal/NumMess.txt" out="$Nmess"/> <!-- V13-change: root="$sub" -->
+							<switch var="$msgcount">
+								<case greater="$Nmess">
+									<store-cookie root="$sub" name="personal/NotMess.txt" value="$DestNR"/> <!-- V13-change: root="$sub" -->
+									<lib-strcat out-string="$DestCF" string="$DestCF" string2="$cdpn"/>
+									<store-cookie root="$sub" name="personal/VMnumber.txt" value="$DestCF"/> <!-- V13-change: root="$sub" -->
+									<wait sec="1"/>
+									<store-cookie root="$sub" name="personal/Cycles.txt" value="2"/> <!-- V13-change: root="$sub" -->
+									<store-cookie root="$sub" name="personal/NumMess.txt" value="$msgcount"/> <!-- V13-change: root="$sub" -->
+									<while notcond="$pin-ok">
+										<store-get root="" name="Track01.$coder" out-url="$ctrl"/>
+										<pbx-prompt url="$ctrl" sec="4" repeat="true"/>
+									</while>
+								</case>
+								<case less="$Nmess">
+									<wait sec="1"/>
+									<store-cookie root="$sub" name="personal/NumMess.txt" value="$msgcount"/> <!-- V13-change: root="$sub" -->
+								</case>
+								<case equal="$Nmess">
+									<store-cookie root="$sub" name="personal/Cycles.txt" out="$NonZero"/> <!-- V13-change: root="$sub" -->
+									<if cond="$NonZero">
+										<sub value="$NonZero" value2="1" out="$res"/>
+										<wait sec="1"/>
+										<store-cookie root="$sub" name="personal/Cycles.txt" value="$res"/> <!-- V13-change: root="$sub" -->
+										<while notcond="$pin-ok">
+											<store-get root="" name="Track01.$coder" out-url="$ctrl"/>
+											<pbx-prompt url="$ctrl" sec="4" repeat="true"/>
+										</while>
+									</if>
+								</case>
+							</switch>
+						</if>
+						<else>
+							<store-cookie root="$sub" name="personal/NumMess.txt" value="0"/> <!-- V13-change: root="$sub" -->
+						</else>
+					</case>
+				</switch>
+			</if>
+		</if>
+		<pbx-disc/>
+	</function>
+	
+	<!-- Added for V13 -->
+	<!-- =======================TweakCn===================================== -->
+	<function define="TweakUsrDir">
+		<if notcond="$usrdir_orig">
+			<assign value="$usrdir" out="$usrdir_orig"/>
+		</if>
+		<if cond="$_pbxmwidir">
+			<lib-strcat string="$_pbxmwidir" string2="/" out-string="$tmp"/>
+			<lib-strcat string="$tmp" string2="$usrdir" out-string="$usrdir"/>
+		</if>
+	</function>
+	<!-- =======================SetUsrDir===================================== -->
+	<function define="SetUsrDir">
+		<assign value="$cn" out="$usrdir"/>
+		<if cond="$app">
+			<pbx-query-obj name="$cn_obj" type="h323" out="$tmpusrdir"/>
+			<if cond="$tmpusrdir">
+				<assign value="$tmpusrdir" out="$usrdir"/>
+			</if>
+			<else>
+				<dbg string="Error: No SIP-info administrated for user " string2="$cn_obj"/>
+				<pbx-disc/>
+			</else>
+		</if>
+	</function>
+	<!-- =======================SetUsrInfo===================================== -->
+	<function define="SetUsrInfo">
+		<assign value="$cn" out="$cn_obj"/>
+		<call name="SetUsrDir"/>
+		<call name="TweakUsrDir"/>
+	</function>
+	<!-- Added for V13 -->
+</voicemail>
+<!-- VM Voice Notification wiki-src/xml/VMvoiceN 1,0,1,0 (C) innovaphone AG 2010-2017 -->
+<!-- VM Voice Notification wiki-src/xml/VMvoiceN 1,0,2,0 (C) innovaphone AG 2010-2018 -->
