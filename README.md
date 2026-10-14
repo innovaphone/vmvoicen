@@ -1,2 +1,2 @@
 # vmvoicen
-http://wiki.innovaphone.com/index.php?title=Howto:Voice_Notification
+https://wiki.innovaphone.com/index.php?title=Howto:Voice_Notification
